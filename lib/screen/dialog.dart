@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../viewmodel/tasks_viewmodel.dart';
 
 class CustomDialog extends StatelessWidget {
-  const CustomDialog({Key? key}) : super(key: key);
+  CustomDialog({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final taskProvider = Provider.of<TaskViewModal>(context, listen: false);
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.5,
       width: MediaQuery.sizeOf(context).width * 0.8,
@@ -35,7 +39,10 @@ class CustomDialog extends StatelessWidget {
             SizedBox(
               height: 40,
               width: double.infinity,
-              child: const TextField(
+              child: TextField(
+                onChanged: (value) {
+                  taskProvider.setTaskName(value);
+                },
                 decoration: InputDecoration(hintText: "Enter a Task"),
               ),
             ),
@@ -50,11 +57,18 @@ class CustomDialog extends StatelessWidget {
               height: 40,
               width: double.infinity,
               child: TextField(
+                controller: taskProvider.dateController,
                 readOnly: true,
                 decoration: InputDecoration(
                     suffixIcon: InkWell(
                       child: Icon(Icons.calendar_month),
-                      onTap: () {},
+                      onTap: () async {
+                        DateTime? date = await showDatePicker(
+                            context: context,
+                            firstDate: DateTime(2017),
+                            lastDate: DateTime(2030));
+                        taskProvider.setDate(date);
+                      },
                     ),
                     hintText: "Pick a date"),
               ),
@@ -66,11 +80,16 @@ class CustomDialog extends StatelessWidget {
               height: 40,
               width: double.infinity,
               child: TextField(
+                controller: taskProvider.timeController,
                 readOnly: true,
                 decoration: InputDecoration(
                     suffixIcon: InkWell(
                       child: Icon(Icons.watch_later_outlined),
-                      onTap: () {},
+                      onTap: () async {
+                        TimeOfDay? time = await showTimePicker(
+                            context: context, initialTime: TimeOfDay.now());
+                        taskProvider.setTime(time);
+                      },
                     ),
                     hintText: "Pick a time"),
               ),
@@ -82,7 +101,12 @@ class CustomDialog extends StatelessWidget {
               child: ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.white),
-                  onPressed: () {},
+                  onPressed: () {
+                    taskProvider.addTask();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
                   child: Text(
                     'Create',
                     style: TextStyle(color: Colors.blue),
